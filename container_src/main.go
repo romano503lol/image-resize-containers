@@ -25,14 +25,9 @@ func resizeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse width and height parameters (at least one required)
+	// Parse width and height parameters (optional)
 	widthStr := r.URL.Query().Get("width")
 	heightStr := r.URL.Query().Get("height")
-
-	if widthStr == "" && heightStr == "" {
-		http.Error(w, "Width or height parameter required", http.StatusBadRequest)
-		return
-	}
 
 	var width, height int
 	var err error
@@ -68,9 +63,12 @@ func resizeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Resize with aspect ratio preserved
+	// Resize with aspect ratio preserved, or return original if no parameters
 	var resized image.Image
-	if width > 0 && height > 0 {
+	if widthStr == "" && heightStr == "" {
+		// No parameters - return original image
+		resized = img
+	} else if width > 0 && height > 0 {
 		// Both dimensions specified - fit within bounds
 		resized = imaging.Fit(img, width, height, imaging.Lanczos)
 	} else if width > 0 {
